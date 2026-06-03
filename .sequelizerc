@@ -1,0 +1,17 @@
+const path = require('path');
+const dotenv = require('dotenv');
+dotenv.config();
+
+let config = {
+  config: path.resolve('dist/src/config', 'db.js'),
+  'migrations-path': path.resolve('', 'migrations'),
+  'models-path': path.resolve('dist/src', 'models'),
+};
+
+const env = process.env.ENV.toUpperCase();
+if (env === 'LOCAL' || env === 'TEST') {
+  config['config'] = path.resolve('src/config', 'db.ts');
+  config['models-path'] = path.resolve('src', 'models');
+}
+
+module.exports = config;
