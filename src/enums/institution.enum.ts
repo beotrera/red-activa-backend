@@ -1,0 +1,6 @@
+export enum InstitutionType {
+  HOSPITAL = 'HOSPITAL',
+  CLINIC = 'CLINIC',
+  SANATORIUM = 'SANATORIUM',
+  MANAGEMENT = 'MANAGEMENT',
+}

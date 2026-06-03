@@ -3,8 +3,8 @@ export default {
     level: process.env.LOG_LEVEL || 'trace',
   },
   env: process.env.ENV?.toUpperCase(),
-  databaseUrl: process.env.DATABASE_URL,
   mongoUrl: process.env.MONGO_URL || 'mongodb://localhost:27017/red-activa',
+  appUrl: process.env.APP_URL || 'http://localhost:3000',
   port: parseInt(process.env.PORT) || 3000,
   connectionPool: parseInt(process.env.CONNECTION_POOL) || 5,
   jwt: {

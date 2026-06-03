@@ -1,0 +1,17 @@
+export enum Gender {
+  MALE = 'MALE',
+  FEMALE = 'FEMALE',
+}
+
+export enum ConsciousnessLevel {
+  CONSCIOUS = 'CONSCIOUS',
+  DISORIENTED = 'DISORIENTED',
+  UNCONSCIOUS = 'UNCONSCIOUS',
+  SEDATED = 'SEDATED',
+}
+
+export enum PersonStatus {
+  UNIDENTIFIED = 'UNIDENTIFIED',
+  POTENTIAL_MATCH = 'POTENTIAL_MATCH',
+  IDENTIFIED = 'IDENTIFIED',
+}

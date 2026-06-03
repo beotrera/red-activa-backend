@@ -43,4 +43,26 @@ customErrors[ApiError.Auth.tokenExpired] = {
   HTTPStatusCode: 401,
 };
 
+// #region Institution
+
+customErrors[ApiError.Institution.notFound] = {
+  message: 'Institution not found',
+  showMessage: {
+    EN: 'Institution not found',
+    ES: 'Institución no encontrada',
+  },
+  HTTPStatusCode: 404,
+};
+
+// #region Person
+
+customErrors[ApiError.Person.notFound] = {
+  message: 'Person not found',
+  showMessage: {
+    EN: 'Person not found',
+    ES: 'Persona no encontrada',
+  },
+  HTTPStatusCode: 404,
+};
+
 export { customErrors };

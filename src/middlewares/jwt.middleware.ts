@@ -15,6 +15,12 @@ export const jwtMiddleware = (req: Request, res: Response, next: NextFunction) =
 
     res.locals.userId = payload.userId;
     res.locals.email = payload.email;
+    res.locals.fullName = payload.fullName;
+    res.locals.role = payload.role;
+    res.locals.gender = payload.gender;
+    res.locals.entity = payload.entity;
+    res.locals.institutionId = payload.institutionId;
+    res.locals.avatarUrl = payload.avatarUrl;
 
     next();
   } catch (err) {

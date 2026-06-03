@@ -1,16 +1,18 @@
 import express, { Request, Response, NextFunction } from 'express';
 import httpContext from 'express-http-context';
-import * as bodyParser from 'body-parser';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
 import cookieParser from 'cookie-parser';
+import path from 'path';
 import mongoose from 'mongoose';
 import config from './config/config';
 import { customErrors } from './enums';
 import { routes } from './routes';
-import { sequelize } from './models';
 import { CustomError, WSresponse, logger } from './lib';
+import { runSeeders } from './seeders/institutions.seeder';
+import { runUsersSeeders } from './seeders/users.seeder';
+import { runPersonsSeeders } from './seeders/persons.seeder';
 
 // Error handler
 const exceptionMiddleware = (err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -49,18 +51,11 @@ export class App {
 
   public async connectToDatabase() {
     try {
-      await sequelize().authenticate();
-      logger.info('Database connection successfully');
-    } catch (error) {
-      logger.error(error, 'Database connection failed');
-      throw error;
-    }
-  }
-
-  public async connectToMongo() {
-    try {
       await mongoose.connect(config.mongoUrl);
       logger.info('MongoDB connection successfully');
+      await runSeeders();
+      await runUsersSeeders();
+      await runPersonsSeeders();
     } catch (error) {
       logger.error(error, 'MongoDB connection failed');
       throw error;
@@ -78,16 +73,12 @@ export class App {
   }
 
   private configureMiddleware() {
-    this.server.use(bodyParser.text());
-    this.server.use(bodyParser.json());
-    this.server.use(bodyParser.urlencoded({ extended: false }));
-    this.server.use(helmet()); // for security purposes
-    this.server.use(
-      cors({
-        credentials: true,
-      }),
-    ); // enable all CORS Requests
+    this.server.use(express.json());
+    this.server.use(express.urlencoded({ extended: false }));
+    this.server.use(helmet());
+    this.server.use(cors({ credentials: true }));
     this.server.use(cookieParser());
+    this.server.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
   }
 
   private configureRoutes() {

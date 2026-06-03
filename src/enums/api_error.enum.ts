@@ -13,4 +13,12 @@ export namespace ApiError {
     invalidCredentials,
     tokenExpired,
   }
+
+  export enum Institution {
+    notFound = 4000,
+  }
+
+  export enum Person {
+    notFound = 5000,
+  }
 }
