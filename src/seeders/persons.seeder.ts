@@ -29,8 +29,8 @@ export const runPersonsSeeders = async (): Promise<void> => {
       {
         estimatedAge: 42,
         gender: Gender.MALE,
-        height: '1.78m',
-        weight: '80kg',
+        height: 1.78,
+        weight: 80,
         distinctiveFeatures: 'Tatuaje de águila en antebrazo derecho. Cicatriz en mentón.',
         consciousnessLevel: ConsciousnessLevel.CONSCIOUS,
         location: italiano.address,
@@ -46,8 +46,8 @@ export const runPersonsSeeders = async (): Promise<void> => {
       {
         estimatedAge: 28,
         gender: Gender.FEMALE,
-        height: '1.62m',
-        weight: '55kg',
+        height: 1.62,
+        weight: 55,
         distinctiveFeatures: 'Cabello castaño corto. Piercing en oreja izquierda. Marca de nacimiento en cuello.',
         consciousnessLevel: ConsciousnessLevel.DISORIENTED,
         location: italiano.address,

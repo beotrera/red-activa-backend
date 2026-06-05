@@ -1,6 +1,6 @@
 import { InstitutionModel } from '../models/institution.model';
 import { CustomError } from '../lib';
-import { ApiError } from '../enums';
+import { ApiError, InstitutionType } from '../enums';
 import { CreateInstitutionDto, NearbyQuery } from '../types';
 
 const create = async (dto: CreateInstitutionDto) => {
@@ -39,6 +39,17 @@ const findNearby = async ({ longitude, latitude, maxDistance = 10000 }: NearbyQu
   return institution;
 };
 
+const findNearestManagement = async (longitude: number, latitude: number) => {
+  return InstitutionModel.findOne({
+    type: InstitutionType.MANAGEMENT,
+    location: {
+      $near: {
+        $geometry: { type: 'Point', coordinates: [longitude, latitude] },
+      },
+    },
+  });
+};
+
 const update = async (id: string, dto: Partial<CreateInstitutionDto>) => {
   const payload: any = { ...dto };
 
@@ -65,4 +76,4 @@ const remove = async (id: string) => {
   if (!deleted) throw new CustomError(ApiError.Institution.notFound);
 };
 
-export const institutionService = { create, findAll, findById, findNearby, update, remove };
+export const institutionService = { create, findAll, findById, findNearby, findNearestManagement, update, remove };

@@ -11,7 +11,6 @@
     "migrate-undo": "node_modules/.bin/sequelize db:migrate:undo"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.106.1",
     "@types/bcryptjs": "^2.4.6",
     "@types/jsonwebtoken": "^9.0.10",
     "@typescript-eslint/eslint-plugin": "^5.25.0",

@@ -3,8 +3,8 @@ import { Gender, ConsciousnessLevel, PersonStatus } from '../../enums';
 export interface CreatePersonDto {
   estimatedAge: number;
   gender: Gender;
-  height: string;
-  weight: string;
+  height: number;
+  weight: number;
   distinctiveFeatures: string;
   consciousnessLevel: ConsciousnessLevel;
   notes?: string;

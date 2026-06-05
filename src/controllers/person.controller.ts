@@ -12,12 +12,15 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
 
     const institution = await institutionService.findById(res.locals.institutionId);
 
+    const [lon, lat] = institution.location.coordinates;
+    const nearestManagement = await institutionService.findNearestManagement(lon, lat);
+
     const ctx: CreatePersonContext = {
       userId: res.locals.userId,
       institutionId: res.locals.institutionId,
       location: institution.address,
       reportedBy: buildReportedBy(res.locals.role as UserRole, res.locals.gender as Gender, res.locals.fullName),
-      assignedTo: res.locals.entity,
+      assignedTo: nearestManagement?.name ?? res.locals.entity,
     };
 
     const person = await personService.create(req.body, ctx);

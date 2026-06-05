@@ -10,8 +10,8 @@ export interface IIdentifyingPhoto {
 export interface IPerson extends Document {
   estimatedAge: number;
   gender: Gender;
-  height: string;
-  weight: string;
+  height: number;
+  weight: number;
   distinctiveFeatures: string;
   consciousnessLevel: ConsciousnessLevel;
   location: string;
@@ -38,8 +38,8 @@ const personSchema = new Schema<IPerson>(
   {
     estimatedAge: { type: Number, required: true },
     gender: { type: String, required: true, enum: Object.values(Gender) },
-    height: { type: String, required: true, trim: true },
-    weight: { type: String, required: true, trim: true },
+    height: { type: Number, required: true },
+    weight: { type: Number, required: true },
     distinctiveFeatures: { type: String, required: true, trim: true },
     consciousnessLevel: { type: String, required: true, enum: Object.values(ConsciousnessLevel) },
     location: { type: String, required: true, trim: true },

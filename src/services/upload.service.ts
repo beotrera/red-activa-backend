@@ -1,10 +1,9 @@
 import path from 'path';
 import fs from 'fs';
-import config from '../config/config';
 import { UPLOADS_ROOT } from '../config/multer.config';
 
 const getPublicUrl = (relativePath: string): string =>
-  `${config.appUrl}/uploads/${relativePath}`;
+  `/uploads/${relativePath}`;
 
 /**
  * Moves temp person images to uploads/images/<personId>/
