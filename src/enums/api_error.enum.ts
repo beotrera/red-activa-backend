@@ -21,4 +21,8 @@ export namespace ApiError {
   export enum Person {
     notFound = 5000,
   }
+
+  export enum Report {
+    notFound = 6000,
+  }
 }

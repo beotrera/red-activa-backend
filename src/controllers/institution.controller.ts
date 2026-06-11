@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import { WSresponse, CustomError } from '../lib';
 import { ApiError } from '../enums';
-import { institutionService } from '../services/institution.service';
+import { institutionService } from '../services';
 
 const findNearby = async (req: Request, res: Response, next: NextFunction) => {
   try {

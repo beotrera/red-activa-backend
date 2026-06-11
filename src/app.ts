@@ -13,6 +13,7 @@ import { CustomError, WSresponse, logger } from './lib';
 import { runSeeders } from './seeders/institutions.seeder';
 import { runUsersSeeders } from './seeders/users.seeder';
 import { runPersonsSeeders } from './seeders/persons.seeder';
+import { runReportsSeeders } from './seeders/reports.seeder';
 
 // Error handler
 const exceptionMiddleware = (err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -56,6 +57,7 @@ export class App {
       await runSeeders();
       await runUsersSeeders();
       await runPersonsSeeders();
+      await runReportsSeeders();
     } catch (error) {
       logger.error(error, 'MongoDB connection failed');
       throw error;
@@ -78,13 +80,16 @@ export class App {
     this.server.use(helmet());
     this.server.use(cors({ credentials: true }));
     this.server.use(cookieParser());
-    this.server.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+    this.server.use('/uploads', (_req, res, next) => {
+      res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      next();
+    }, express.static(path.join(process.cwd(), 'uploads')));
   }
 
   private configureRoutes() {
     this.server.use('/api', routes);
     // catch 404 and forward to error handler
-    this.server.use((req: Request, res: Response) => {
+    this.server.use((_req: Request, res: Response) => {
       res.status(404);
       res.send(new WSresponse(false));
     });

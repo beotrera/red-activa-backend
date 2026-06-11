@@ -65,4 +65,15 @@ customErrors[ApiError.Person.notFound] = {
   HTTPStatusCode: 404,
 };
 
+// #region Report
+
+customErrors[ApiError.Report.notFound] = {
+  message: 'Report not found',
+  showMessage: {
+    EN: 'Report not found',
+    ES: 'Denuncia no encontrada',
+  },
+  HTTPStatusCode: 404,
+};
+
 export { customErrors };

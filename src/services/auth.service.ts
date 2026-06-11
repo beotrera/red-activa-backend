@@ -9,7 +9,6 @@ import { LoginPayload, AuthTokenPayload, AuthUser } from '../types';
 
 const generateToken = (payload: AuthTokenPayload): string =>
   jwt.sign(payload, config.jwt.secret, { expiresIn: config.jwt.expiresIn as any });
-
 const login = async ({ email, password }: LoginPayload): Promise<AuthUser> => {
   // Single query — populate institution name for the token entity field
   const user = await UserModel.findOne({ email })

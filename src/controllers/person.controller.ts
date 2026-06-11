@@ -1,10 +1,35 @@
 import { Request, Response, NextFunction } from 'express';
-import { WSresponse } from '../lib';
+import { WSresponse, logger } from '../lib';
 import { personService, CreatePersonContext } from '../services/person.service';
 import { uploadService } from '../services/upload.service';
 import { institutionService } from '../services/institution.service';
+import { similarityService, SimilarityCandidate } from '../services/similarity.service';
+import { similarityMatchService } from '../services/similarity-match.service';
 import { Gender, PersonStatus, UserRole } from '../enums';
 import { buildReportedBy } from '../utils/reporter.utils';
+import { IPerson } from '../models/person.model';
+import { IReport, ReportModel } from '../models/report.model';
+
+const runSimilarityInBackground = (newPerson: IPerson): void => {
+  const personId = (newPerson._id as any).toString();
+  const query = [newPerson.distinctiveFeatures, newPerson.notes].filter(Boolean).join('. ');
+
+  ReportModel.find()
+    .then(async (reports) => {
+      if (reports.length === 0) return;
+
+      const candidates: SimilarityCandidate[] = (reports as IReport[]).map((d) => ({
+        personId: (d._id as any).toString(),
+        description: d.description,
+      }));
+
+      const results = await similarityService.compare(query, candidates);
+      await similarityMatchService.saveMany(personId, results);
+
+      logger.info({ personId, saved: results.filter((r) => r.score >= 0.70).length }, 'Similarity check completed');
+    })
+    .catch((err) => logger.error(err, 'Background similarity check failed'));
+};
 
 const create = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -29,10 +54,13 @@ const create = async (req: Request, res: Response, next: NextFunction) => {
       const photoUrls = uploadService.movePersonImages(files, (person._id as any).toString());
       await personService.addPhotos((person._id as any).toString(), photoUrls);
       const updated = await personService.findById((person._id as any).toString());
-      return res.status(201).send(new WSresponse(true, updated));
+      res.status(201).send(new WSresponse(true, updated));
+      runSimilarityInBackground(person as unknown as IPerson);
+      return;
     }
 
     res.status(201).send(new WSresponse(true, person));
+    runSimilarityInBackground(person as unknown as IPerson);
   } catch (err) {
     next(err);
   }
