@@ -16,22 +16,4 @@ router.get('/by-neighborhood', async (_req: Request, res: Response, next: NextFu
   }
 });
 
-router.get('/heatmap', async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const data = await analyticsService.heatmap();
-    res.send(new WSresponse(true, data));
-  } catch (err) {
-    next(err);
-  }
-});
-
-router.get('/summary', async (_req: Request, res: Response, next: NextFunction) => {
-  try {
-    const data = await analyticsService.summary();
-    res.send(new WSresponse(true, data));
-  } catch (err) {
-    next(err);
-  }
-});
-
 export const analyticsRouter: Router = router;
