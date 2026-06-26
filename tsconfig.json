@@ -18,6 +18,7 @@
     "resolveJsonModule": true,
     "sourceMap": true,
     "moduleResolution": "node",
+    "ignoreDeprecations": "5.0",
     "removeComments": true,
     "typeRoots": ["node_modules/@types"],
     "baseUrl": "src",

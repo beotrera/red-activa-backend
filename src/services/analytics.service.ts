@@ -12,45 +12,22 @@ const byNeighborhood = async () => {
       { $match: { deletedAt: null } },
       { $group: { _id: '$neighborhood', reports: { $sum: 1 } } },
     ]),
-    NeighborhoodModel.find({}, { name: 1, comuna: 1, centroid: 1 }).lean(),
+    NeighborhoodModel.find({}, { name: 1, comuna: 1, centroid: 1, boundary: 1 }).lean(),
   ]);
 
-  const centroidMap = new Map(
-    neighborhoods.map((n) => [n.name, { coordinates: n.centroid.coordinates, comuna: n.comuna }]),
-  );
+  const nnMap = new Map(nnByZone.map((e) => [e._id as string, e.nn as number]));
+  const reportsMap = new Map(reportsByZone.map((e) => [e._id as string, e.reports as number]));
 
-  const map = new Map<
-    string,
-    { neighborhood: string; nn: number; reports: number; coordinates: [number, number] | null; comuna: number | null }
-  >();
+  const result = neighborhoods.map((n) => ({
+    neighborhood: n.name,
+    nn: nnMap.get(n.name) ?? 0,
+    reports: reportsMap.get(n.name) ?? 0,
+    coordinates: n.centroid.coordinates as [number, number],
+    polygon: n.boundary.coordinates[0] as [number, number][],
+    comuna: n.comuna,
+  }));
 
-  for (const entry of nnByZone) {
-    const geo = centroidMap.get(entry._id) ?? null;
-    map.set(entry._id, {
-      neighborhood: entry._id,
-      nn: entry.nn,
-      reports: 0,
-      coordinates: geo ? (geo.coordinates as [number, number]) : null,
-      comuna: geo?.comuna ?? null,
-    });
-  }
-  for (const entry of reportsByZone) {
-    const existing = map.get(entry._id);
-    if (existing) {
-      existing.reports = entry.reports;
-    } else {
-      const geo = centroidMap.get(entry._id) ?? null;
-      map.set(entry._id, {
-        neighborhood: entry._id,
-        nn: 0,
-        reports: entry.reports,
-        coordinates: geo ? (geo.coordinates as [number, number]) : null,
-        comuna: geo?.comuna ?? null,
-      });
-    }
-  }
-
-  return Array.from(map.values()).sort((a, b) => b.nn + b.reports - (a.nn + a.reports));
+  return result.sort((a, b) => b.nn + b.reports - (a.nn + a.reports));
 };
 
 export const analyticsService = { byNeighborhood };
