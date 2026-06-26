@@ -16,7 +16,8 @@
 
 ## Actualizaciones
 
-**Recordar** este proyecto aun no está terminado para presentar esperando los ultimos cambios para el match de score en palabras que en comparacion tengan una coincidencia de por ejemplo un 75%, hasta ahora existe un algoritmo que cumple con el objetivo pero estamso buscando un opensource que sin cobro, logre dar con los resultados esperados.
+- **26/06/2026** — Endpoint `GET /analytics/by-neighborhood` ahora incluye `coordinates` (centroide del barrio) y `comuna`, listo para el dashboard del frontend con mapa. Se eliminaron los endpoints `heatmap` y `summary` que no eran requeridos.
+- **Pendiente** — Algoritmo de similitud semántica: se busca una solución open source sin costo que logre matching por similitud de texto con umbral configurable (~75%). El algoritmo actual funciona pero está en revisión.
 
 ## Índice
 
@@ -253,9 +254,21 @@ Authorization: Bearer <token>
 ### Analytics
 | Método | Ruta | Descripción |
 |---|---|---|
-| `GET` | `/analytics/by-neighborhood` | NN y reportes agrupados por barrio |
-| `GET` | `/analytics/heatmap` | Datos para heatmap geográfico por institución |
-| `GET` | `/analytics/summary` | Totales globales, por estado, género y matches |
+| `GET` | `/analytics/by-neighborhood` | NNA y reportes por barrio con coordenadas de centroide para mapa |
+
+**Respuesta de `/analytics/by-neighborhood`:**
+```json
+[
+  {
+    "neighborhood": "Palermo",
+    "nn": 12,
+    "reports": 5,
+    "coordinates": [-58.4173, -34.5848],
+    "comuna": 14
+  }
+]
+```
+> `coordinates` es `[lng, lat]` (GeoJSON). Puede ser `null` si el barrio no existe en la colección `Neighborhood`. El array viene ordenado por `nn + reports` descendente.
 
 ---
 
@@ -350,6 +363,9 @@ Historial de trabajo del equipo en este repositorio:
 
 | # | Hash | Fecha | Descripción |
 |---|---|---|---|
+| 10 | `39d02c0` | 2026-06-26 | Merge PR #3 — feat(analytics): enrich by-neighborhood with geo |
+| 9 | `327d54f` | 2026-06-26 | feat(analytics): agrega coordenadas y comuna al endpoint by-neighborhood |
+| 8 | `aa6980a` | 2026-06-19 | added IA compare |
 | 7 | `ae0046a` | 2026-06-19 | change come services |
 | 6 | `80cd35b` | 2026-06-10 | added reports |
 | 5 | `95f5c51` | 2026-06-04 | fix types in person |
@@ -358,7 +374,7 @@ Historial de trabajo del equipo en este repositorio:
 | 2 | `7473680` | 2026-06-03 | Change types, create new endpoints |
 | 1 | `bba4505` | 2026-06-02 | first commit |
 
-**Autor:** Braian Botrera (`botrera`)
+**Autores:** Braian Botrera (`botrera`), Romero Quirino Luis Emilio (`CoachEmilio`)
 
 **Resumen de evolución:**
 - **02/06** — Estructura inicial del proyecto (Express + MongoDB + TypeScript)
@@ -366,6 +382,7 @@ Historial de trabajo del equipo en este repositorio:
 - **04/06** — Corrección de tipos en el modelo Person
 - **10/06** — Incorporación del módulo de reportes ciudadanos y algoritmo de similitud
 - **19/06** — Refactor de servicios (analytics, similarity-match)
+- **26/06** — Endpoint `by-neighborhood` enriquecido con coordenadas de centroide y número de comuna para renderizado de mapa en el frontend; eliminados endpoints `heatmap` y `summary`
 
 ---
 
