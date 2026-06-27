@@ -3,6 +3,8 @@ import { personController } from '../controllers/person.controller';
 import { jwtMiddleware } from '../middlewares/jwt.middleware';
 import { uploadPersonImages } from '../config/multer.config';
 import { similarityMatchService } from '../services/similarity-match.service';
+import { similarityService } from '../services/similarity.service';
+import { PersonModel } from '../models/person.model';
 import { WSresponse } from '../lib';
 
 const router: Router = Router();
@@ -23,6 +25,20 @@ router.get('/:id/similarities', async (req: Request, res: Response, next: NextFu
   try {
     const matches = await similarityMatchService.findByPerson(req.params.id);
     res.send(new WSresponse(true, matches));
+  } catch (err) {
+    next(err);
+  }
+});
+
+// Dispara la comparación IA para todos los NNs existentes (uso admin/one-shot)
+router.post('/run-similarity-all', async (_req: Request, res: Response, next: NextFunction) => {
+  try {
+    const persons = await PersonModel.find({ deletedAt: null }).lean();
+    res.send(new WSresponse(true, { queued: persons.length }));
+    // Corre en background sin bloquear la respuesta
+    for (const person of persons) {
+      await similarityService.findAndSaveMatches(person as any);
+    }
   } catch (err) {
     next(err);
   }

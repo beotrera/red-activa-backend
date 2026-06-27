@@ -15,6 +15,7 @@ import { runNeighborhoodsSeeders } from './seeders/neighborhoods.seeder';
 import { runUsersSeeders } from './seeders/users.seeder';
 import { runPersonsSeeders } from './seeders/persons.seeder';
 import { runReportsSeeders } from './seeders/reports.seeder';
+import { runSimilarityMatchesSeeders } from './seeders/similarity-matches.seeder';
 
 // Error handler
 const exceptionMiddleware = (err: any, _req: Request, res: Response, _next: NextFunction) => {
@@ -60,6 +61,7 @@ export class App {
       await runUsersSeeders();
       await runPersonsSeeders();
       await runReportsSeeders();
+      await runSimilarityMatchesSeeders();
     } catch (error) {
       logger.error(error, 'MongoDB connection failed');
       throw error;

@@ -1,7 +1,8 @@
 ﻿import { logger } from '../lib';
 import { googleAI } from '../utils';
-import { IPerson } from '../models/person.model';
+import { IPerson, PersonModel } from '../models/person.model';
 import { IReport, ReportModel } from '../models/report.model';
+import { PersonStatus } from '../enums';
 import { similarityMatchService } from './similarity-match.service';
 
 interface SimilarityCandidate {
@@ -17,7 +18,7 @@ export interface SimilarityResult {
 }
 
 const SCORE_THRESHOLD = 60;
-const CANDIDATES_LIMIT = 5;
+const CANDIDATES_LIMIT = 10;
 
 const compare = async (description: string, candidates: SimilarityCandidate[]): Promise<SimilarityResult[]> => {
   if (candidates.length === 0) return [];
@@ -65,6 +66,11 @@ const findAndSaveMatches = async (person: IPerson): Promise<void> => {
 
     const results = await compare(person.distinctiveFeatures, candidates);
     await similarityMatchService.saveMany(personId, results);
+
+    if (results.length > 0) {
+      await PersonModel.findByIdAndUpdate(personId, { status: PersonStatus.POTENTIAL_MATCH });
+      logger.info({ personId }, 'Person status updated to POTENTIAL_MATCH');
+    }
 
     logger.info({ personId, candidates: candidates.length, saved: results.length }, 'Similarity check completed');
   } catch (err) {
