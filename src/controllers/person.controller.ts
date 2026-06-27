@@ -1,11 +1,12 @@
 ﻿import { Request, Response, NextFunction } from 'express';
-import { WSresponse } from '../lib';
+import { WSresponse, CustomError } from '../lib';
 import { personService, CreatePersonContext } from '../services/person.service';
+import { personAudioService } from '../services/person-audio.service';
 import { uploadService } from '../services/upload.service';
 import { institutionService } from '../services/institution.service';
 import { neighborhoodService } from '../services/neighborhood.service';
 import { similarityService } from '../services/similarity.service';
-import { Gender, PersonStatus, UserRole } from '../enums';
+import { Gender, PersonStatus, UserRole, ApiError } from '../enums';
 import { buildReportedBy } from '../utils/reporter.utils';
 import { IPerson } from '../models/person.model';
 
@@ -85,4 +86,27 @@ const update = async (req: Request, res: Response, next: NextFunction) => {
   }
 };
 
-export const personController = { create, findAll, findById, update };
+const uploadAudio = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const file = req.file;
+    if (!file) throw new CustomError(ApiError.Generic.generic);
+
+    const person = await personAudioService.setAudio(req.params.id, file.buffer, file.mimetype);
+    res.send(new WSresponse(true, person));
+  } catch (err) {
+    next(err);
+  }
+};
+
+const getAudio = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const audio = await personAudioService.getAudio(req.params.id);
+    res.setHeader('Content-Type', audio.mimeType);
+    res.setHeader('Cache-Control', 'no-store');
+    res.send(audio.data);
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const personController = { create, findAll, findById, update, uploadAudio, getAudio };

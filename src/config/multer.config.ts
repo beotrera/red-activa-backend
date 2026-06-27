@@ -20,6 +20,12 @@ const imageFileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilte
   valid ? cb(null, true) : cb(new Error('Only JPEG, PNG and WEBP images are allowed'));
 };
 
+const audioFileFilter = (_req: Request, file: Express.Multer.File, cb: FileFilterCallback) => {
+  const allowed = /mp3|mpeg|wav|m4a|ogg|webm|opus/;
+  const valid = allowed.test(path.extname(file.originalname).toLowerCase()) && allowed.test(file.mimetype);
+  valid ? cb(null, true) : cb(new Error('Only MP3, WAV, M4A, OGG, WEBM and OPUS audio files are allowed'));
+};
+
 // Generic single-image upload (for other endpoints)
 const singleStorage = multer.diskStorage({
   destination: (_req, _file, cb) => cb(null, UPLOADS_ROOT),
@@ -48,4 +54,11 @@ export const uploadPersonImages = multer({
   storage: personImagesStorage,
   fileFilter: imageFileFilter,
   limits: { fileSize: 5 * 1024 * 1024, files: 10 },
+});
+
+// Person audio — kept in memory only; persisted as a Buffer on the Person document
+export const uploadPersonAudio = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: audioFileFilter,
+  limits: { fileSize: 15 * 1024 * 1024 },
 });

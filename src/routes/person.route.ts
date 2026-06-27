@@ -1,7 +1,7 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { personController } from '../controllers/person.controller';
 import { jwtMiddleware } from '../middlewares/jwt.middleware';
-import { uploadPersonImages } from '../config/multer.config';
+import { uploadPersonImages, uploadPersonAudio } from '../config/multer.config';
 import { similarityMatchService } from '../services/similarity-match.service';
 import { similarityService } from '../services/similarity.service';
 import { PersonModel } from '../models/person.model';
@@ -20,6 +20,11 @@ router
   .route('/:id')
   .get(personController.findById)
   .put(personController.update);
+
+router
+  .route('/:id/audio')
+  .get(personController.getAudio)
+  .post(uploadPersonAudio.single('audio'), personController.uploadAudio);
 
 router.get('/:id/similarities', async (req: Request, res: Response, next: NextFunction) => {
   try {

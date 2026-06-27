@@ -84,4 +84,9 @@ const addPhotos = async (id: string, photoUrls: string[]) => {
   return person;
 };
 
-export const personService = { create, findAll, findById, update, addPhotos };
+const exists = async (id: string) => {
+  const count = await PersonModel.countDocuments({ _id: id, deletedAt: null });
+  return count > 0;
+};
+
+export const personService = { create, findAll, findById, update, addPhotos, exists };

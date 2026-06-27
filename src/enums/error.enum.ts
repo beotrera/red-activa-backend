@@ -65,6 +65,15 @@ customErrors[ApiError.Person.notFound] = {
   HTTPStatusCode: 404,
 };
 
+customErrors[ApiError.Person.audioNotFound] = {
+  message: 'Person audio not found',
+  showMessage: {
+    EN: 'Person audio not found',
+    ES: 'Audio de la persona no encontrado',
+  },
+  HTTPStatusCode: 404,
+};
+
 // #region Report
 
 customErrors[ApiError.Report.notFound] = {

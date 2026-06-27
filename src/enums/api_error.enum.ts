@@ -20,6 +20,7 @@ export namespace ApiError {
 
   export enum Person {
     notFound = 5000,
+    audioNotFound,
   }
 
   export enum Report {
