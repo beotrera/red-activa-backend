@@ -16,6 +16,7 @@
 
 ## Actualizaciones
 
+- **27/06/2026** — Nota de voz por paciente: nuevos endpoints `POST /persons/:id/audio` y `GET /persons/:id/audio`. El audio se almacena como `Buffer` en MongoDB (colección `PersonAudio`) sin pasar por disco. Se soportan formatos mp3, wav, m4a, ogg, webm y opus con límite de 15 MB. Máximo un audio por persona (upsert).
 - **26/06/2026** — Endpoint `GET /analytics/by-neighborhood` ahora incluye `coordinates` (centroide del barrio) y `comuna`, listo para el dashboard del frontend con mapa. Se eliminaron los endpoints `heatmap` y `summary` que no eran requeridos.
 - **Pendiente** — Algoritmo de similitud semántica: se busca una solución open source sin costo que logre matching por similitud de texto con umbral configurable (~75%). El algoritmo actual funciona pero está en revisión.
 
@@ -26,6 +27,7 @@
 - [Stack tecnológico](#stack-tecnológico)
 - [Modelos de datos (MongoDB)](#modelos-de-datos-mongodb)
 - [Endpoints de la API](#endpoints-de-la-api)
+- [Almacenamiento de audio](#almacenamiento-de-audio)
 - [Cómo correr el proyecto](#cómo-correr-el-proyecto)
 - [Variables de entorno](#variables-de-entorno)
 - [Colección Postman](#colección-postman)
@@ -64,6 +66,7 @@ red-activa-backend/
 │   │   ├── analytics.service.ts      # Aggregation pipelines MongoDB
 │   │   ├── auth.service.ts
 │   │   ├── institution.service.ts
+│   │   ├── person-audio.service.ts   # setAudio (upsert Buffer) y getAudio
 │   │   ├── person.service.ts
 │   │   ├── report.service.ts
 │   │   ├── similarity.service.ts     # Comparación de descripciones vía IA (Gemini)
@@ -72,6 +75,7 @@ red-activa-backend/
 │   ├── models/                 # Schemas Mongoose (colecciones MongoDB)
 │   │   ├── institution.model.ts
 │   │   ├── neighborhood.model.ts
+│   │   ├── person-audio.model.ts  # Audio como Buffer en MongoDB (una nota de voz por persona)
 │   │   ├── person.model.ts
 │   │   ├── report.model.ts
 │   │   ├── seeder-log.model.ts
@@ -193,6 +197,21 @@ Cliente HTTP
 
 ---
 
+### `PersonAudio` — Nota de voz por paciente
+
+| Campo | Tipo | Descripción |
+|---|---|---|
+| `person` | ObjectId → Person | Referencia al paciente (unique — máximo un audio por persona) |
+| `data` | Buffer | Bytes crudos del audio almacenados directamente en MongoDB |
+| `mimeType` | String | Tipo MIME original del archivo (`audio/webm`, `audio/mp4`, etc.) |
+| `uploadedAt` | Date | Fecha de subida (se actualiza en cada reemplazo) |
+
+El audio **no se guarda en disco**. Multer lo retiene en memoria (`memoryStorage`) y el servicio lo persiste como `Buffer` en esta colección. Si la persona ya tiene un audio, el documento se reemplaza con `upsert`.
+
+**Índice:** `person` (unique)
+
+---
+
 ### `User`, `Neighborhood`, `SeederLog`
 
 Colecciones de soporte para autenticación, catalogación geográfica y control de idempotencia de seeders.
@@ -228,6 +247,8 @@ Authorization: Bearer <token>
 | `PUT` | `/persons/:id` | Actualizar persona |
 | `DELETE` | `/persons/:id` | Eliminar (soft delete) |
 | `POST` | `/persons/:id/photos` | Agregar fotos identificatorias |
+| `POST` | `/persons/:id/audio` | Subir nota de voz (`multipart/form-data`, campo `audio`) |
+| `GET` | `/persons/:id/audio` | Descargar nota de voz (bytes crudos con `Content-Type` original) |
 | `GET` | `/persons/:id/similarities` | Ver cruces de similitud |
 
 ### Reports
@@ -269,6 +290,37 @@ Authorization: Bearer <token>
 ]
 ```
 > `coordinates` es `[lng, lat]` (GeoJSON). Puede ser `null` si el barrio no existe en la colección `Neighborhood`. El array viene ordenado por `nn + reports` descendente.
+
+---
+
+## Almacenamiento de audio
+
+El flujo completo de una nota de voz es:
+
+```
+Cliente (navegador)
+    └─> POST /persons/:id/audio  (multipart/form-data, campo "audio")
+          └─> Multer memoryStorage  →  file.buffer (en RAM, no toca el disco)
+                └─> personAudioService.setAudio(personId, buffer, mimeType)
+                      └─> PersonAudioModel.findOneAndUpdate(..., { upsert: true })
+                            └─> MongoDB  { person, data: Buffer, mimeType, uploadedAt }
+
+Cliente (reproducción)
+    └─> GET /persons/:id/audio
+          └─> personAudioService.getAudio(personId)
+                └─> PersonAudioModel.findOne(...)
+                      └─> res.setHeader('Content-Type', audio.mimeType)
+                            res.send(audio.data)   ← bytes crudos, sin envolver en JSON
+```
+
+**Decisiones de diseño:**
+- `memoryStorage` en lugar de `diskStorage`: el audio nunca se escribe a disco, va directo de la red a MongoDB como `Buffer`. Evita la gestión de archivos temporales y sincronización.
+- Un documento `PersonAudio` por persona (`unique` en `person`): simplifica la consulta y la UI (siempre hay como máximo una nota de voz por expediente).
+- El `GET` devuelve bytes crudos con el `Content-Type` original (no un envelope JSON), lo que permite asignarlo directamente a un `<audio src>` vía object URL en el frontend.
+- `Cache-Control: no-store` para que el navegador no cachee el audio entre sesiones.
+
+**Formatos aceptados:** `audio/mp3`, `audio/mpeg`, `audio/wav`, `audio/m4a`, `audio/ogg`, `audio/webm`, `audio/opus`  
+**Límite de tamaño:** 15 MB (validado por Multer antes de llegar al controlador)
 
 ---
 
@@ -363,6 +415,7 @@ Historial de trabajo del equipo en este repositorio:
 
 | # | Hash | Fecha | Descripción |
 |---|---|---|---|
+| 11 | *(pendiente)* | 2026-06-27 | feat(audio): almacenamiento de nota de voz como Buffer en MongoDB (`PersonAudio`), endpoints `POST/GET /persons/:id/audio` |
 | 10 | `39d02c0` | 2026-06-26 | Merge PR #3 — feat(analytics): enrich by-neighborhood with geo |
 | 9 | `327d54f` | 2026-06-26 | feat(analytics): agrega coordenadas y comuna al endpoint by-neighborhood |
 | 8 | `aa6980a` | 2026-06-19 | added IA compare |
@@ -383,6 +436,7 @@ Historial de trabajo del equipo en este repositorio:
 - **10/06** — Incorporación del módulo de reportes ciudadanos y algoritmo de similitud
 - **19/06** — Refactor de servicios (analytics, similarity-match)
 - **26/06** — Endpoint `by-neighborhood` enriquecido con coordenadas de centroide y número de comuna para renderizado de mapa en el frontend; eliminados endpoints `heatmap` y `summary`
+- **27/06** — Módulo de audio: modelo `PersonAudio` (Buffer en MongoDB), servicio con upsert, endpoints `POST/GET /persons/:id/audio`, validación de formato y límite de 15 MB vía Multer
 
 ---
 
